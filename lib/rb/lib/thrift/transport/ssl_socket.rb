@@ -32,15 +32,16 @@ module Thrift
       begin
         @handle.connect_nonblock
         @handle.post_connection_check(@host)
+        @handle
       rescue IO::WaitReadable
         IO.select([ @handle ], nil, nil, @timeout)
         retry
       rescue IO::WaitWritable
         IO.select(nil, [ @handle ], nil, @timeout)
         retry
+      rescue StandardError => e
+        raise TransportException.new(TransportException::NOT_OPEN, "Could not connect to #{@desc}: #{e}")
       end
-
-      @handle
     end
   end
 end
